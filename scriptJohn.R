@@ -7,10 +7,11 @@
 #Q3: 2017-07-01 a 2017-09-30
 #Q4: 2017-10-01 a 2017-12-31
 
-# Primavera: 21 mar - 20 jun
-# Verão: 21 jun - 20 set
-# Outono: 21 set - 20 dez
-# Inverno: 21 dez - 20 mar
+#DataSet com as estações
+#name <- c("Spring", "Summer", "Fall", "Winter", "Winter")
+#start <- c("2017-03-21","2017-06-21","2017-09-21","2017-12-21","2017-01-01")
+#end <- c("2017-06-20","2017-09-20","2017-12-20","2017-12-31","2017-03-20")
+#season <- data.frame(name,start,end)
 
 #Monday, January 2, 2017  New Year's Day**
 #Monday, January 16, 2017  Martin Luther King Jr. Day
@@ -57,7 +58,7 @@
 #[ ] Adicionar coluna com informação de dia útil
 
 ###############################
-########### SCRIPT ############
+##### PRÉ-PROCESSAMENTO #######
 ###############################
 
 #Instalar bibliotecas
@@ -106,13 +107,23 @@ Inverno <- Inverno %>% mutate(season = "winter")
 QTOTAL <- rbind(rbind(Primavera, Verão), rbind(Outono, Inverno));
 
 
-#Total de Alugueis por dia da Semana
+###############################
+######### RESULTADOS ##########
+###############################
+#TOTAL DE ALUGUEIS POR DIA DA SEMANA
 #!![Quarta-feira é o dia com mais aluguéis]!!
-AlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count = n())
+AlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count = n());
 ggplot(data=AlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
 
-AlugueisPorDiaSemanaCasuais <- QTOTAL %>% group_by(weekday_name) %>% summarize(count = n()) %>% filter(Member.type=="Casual")
+#!![Usuários casuais utilizam mais nos sábados e domingos]!!
+AlUgueisCasuais <- filter(QTOTAL, Member.type=="Casual")
+AlugueisPorDiaSemanaCasuais <- AlUgueisCasuais %>% group_by(weekday_name) %>% summarize(count = n())
 ggplot(data=AlugueisPorDiaSemanaCasuais) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+
+#!![Usuários registrados utilizam mais de segunda a sexta]!!
+AlUgueisMembros <- filter(QTOTAL, Member.type=="Member")
+AlugueisPorDiaSemanaMembros <- AlUgueisMembros %>% group_by(weekday_name) %>% summarize(count = n())
+ggplot(data=AlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
 
 #exportar tabela para arquivo csv
 write.csv(QTOTAL, "tabela.csv")
