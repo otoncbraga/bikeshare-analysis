@@ -138,6 +138,8 @@ TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(Tot
 
 
 #=======================================#
-#MÉDIA DE ALUGUÉIS POR MÊS
-
+#TOTAL DE ALUGUÉIS POR MÊS
+#!![Inverno é a estação com menos alugueis. Principalmente em Dezembro e Janeiro]!!
+TotalAlugueisPorMes <- QTOTAL %>% group_by(mes) %>% summarize(count = n());
+ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=mes,y=count,group=1), stat="identity")
 
