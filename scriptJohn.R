@@ -63,10 +63,10 @@
 
 #Instalar bibliotecas
 install.packages("ggplot2"); #gerar gráficos
-
 install.packages("sqldf"); #reconhecer comandos SQL
 install.packages("dplyr"); #Transformação/manipulação de dados
 install.packages("lubridate");
+
 #Carregar bibliotecas
 library("ggplot2");
 library("sqldf");
@@ -83,7 +83,6 @@ QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
 
 #Adicionar coluna com dia do mês, mês, ano, dia da semana (1 a 7), dia da semana (nome)
 QTOTAL <- QTOTAL %>% mutate(dia = mday(Start.date), mes = month(Start.date), ano = year(Start.date), weekday = wday(Start.date), weekday_name = wday(Start.date, label=TRUE, abbr = FALSE))
-
 
 #Adicionar estações do ano [[[AINDA NÃO ESTÁ FUNCIONANDO]]]
 #Filtra Estações
@@ -106,24 +105,39 @@ Inverno <- Inverno %>% mutate(season = "winter")
 #Junta arquivos
 QTOTAL <- rbind(rbind(Primavera, Verão), rbind(Outono, Inverno));
 
+#exportar tabela para arquivo csv
+write.csv(QTOTAL, "tabela.csv")
 
 ###############################
 ######### RESULTADOS ##########
 ###############################
+
 #TOTAL DE ALUGUEIS POR DIA DA SEMANA
 #!![Quarta-feira é o dia com mais aluguéis]!!
-AlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count = n());
-ggplot(data=AlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+TotalAlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count_all = n());
+ggplot(data=TotalAlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
 
 #!![Usuários casuais utilizam mais nos sábados e domingos]!!
 AlUgueisCasuais <- filter(QTOTAL, Member.type=="Casual")
-AlugueisPorDiaSemanaCasuais <- AlUgueisCasuais %>% group_by(weekday_name) %>% summarize(count = n())
-ggplot(data=AlugueisPorDiaSemanaCasuais) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+TotalAlugueisPorDiaSemanaCasuais <- AlUgueisCasuais %>% group_by(weekday_name) %>% summarize(count_casual = n())
+ggplot(data=TotalAlugueisPorDiaSemanaCasuais) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
 
 #!![Usuários registrados utilizam mais de segunda a sexta]!!
-AlUgueisMembros <- filter(QTOTAL, Member.type=="Member")
-AlugueisPorDiaSemanaMembros <- AlUgueisMembros %>% group_by(weekday_name) %>% summarize(count = n())
-ggplot(data=AlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+AlugueisMembros <- filter(QTOTAL, Member.type=="Member")
+TotalAlugueisPorDiaSemanaMembros <- AlugueisMembros %>% group_by(weekday_name) %>% summarize(count_membro = n())
+ggplot(data=TotalAlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
 
-#exportar tabela para arquivo csv
-write.csv(QTOTAL, "tabela.csv")
+#Fazer o merge em TotalAlugueisPorDiaSemanaDetalhado, com o total dos dois tipos de usuario, de casual e de membro, pelo dia da semana
+TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(TotalAlugueisPorDiaSemanaCasuais, TotalAlugueisPorDiaSemanaMembros, by="weekday_name")),by="weekday_name")
+#Mostrar dduas linhas msotrando diferença. [[Ainda não está funcionando]]
+#ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=weekday_name, y=count_casual)) + geom_bar(mapping = aes(x=weekday_name, y=count_membro))
+#ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_smooth(mapping = aes(x=weekday_name, y=count_casual)) + geom_smooth(mapping = aes(x=weekday_name, y=count_membro, color="blue"))
+
+#=======================================#
+#MÉDIA DE ALUGUÉIS POR DIA DA SEMANA
+
+
+#=======================================#
+#MÉDIA DE ALUGUÉIS POR MÊS
+
+
