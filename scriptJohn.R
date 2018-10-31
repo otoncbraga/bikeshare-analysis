@@ -115,20 +115,25 @@ write.csv(QTOTAL, "tabela.csv")
 #TOTAL DE ALUGUEIS POR DIA DA SEMANA
 #!![Quarta-feira é o dia com mais aluguéis]!!
 TotalAlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count_all = n());
-ggplot(data=TotalAlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+ggplot(data=TotalAlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count_all,group=1, fill=weekday_name), stat="identity")
+
+ggplot(data=TotalAlugueisPorDiaSemana) + geom_point(mapping = aes(x=weekday_name,y=count_all))
 
 #!![Usuários casuais utilizam mais nos sábados e domingos]!!
 AlUgueisCasuais <- filter(QTOTAL, Member.type=="Casual")
 TotalAlugueisPorDiaSemanaCasuais <- AlUgueisCasuais %>% group_by(weekday_name) %>% summarize(count_casual = n())
-ggplot(data=TotalAlugueisPorDiaSemanaCasuais) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+ggplot(data=TotalAlugueisPorDiaSemanaCasuais) + geom_bar(mapping = aes(x=weekday_name,y=count_casual,group=1), stat="identity")
 
 #!![Usuários registrados utilizam mais de segunda a sexta]!!
 AlugueisMembros <- filter(QTOTAL, Member.type=="Member")
 TotalAlugueisPorDiaSemanaMembros <- AlugueisMembros %>% group_by(weekday_name) %>% summarize(count_membro = n())
-ggplot(data=TotalAlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count,group=1), stat="identity")
+ggplot(data=TotalAlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count_membro,group=1), stat="identity")
 
 #Fazer o merge em TotalAlugueisPorDiaSemanaDetalhado, com o total dos dois tipos de usuario, de casual e de membro, pelo dia da semana
 TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(TotalAlugueisPorDiaSemanaCasuais, TotalAlugueisPorDiaSemanaMembros, by="weekday_name")),by="weekday_name")
+
+#Não está funcionando
+ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=count_all, fill=count_casual), position = "dodge")
 #Mostrar dduas linhas msotrando diferença. [[Ainda não está funcionando]]
 #ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=weekday_name, y=count_casual)) + geom_bar(mapping = aes(x=weekday_name, y=count_membro))
 #ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_smooth(mapping = aes(x=weekday_name, y=count_casual)) + geom_smooth(mapping = aes(x=weekday_name, y=count_membro, color="blue"))
