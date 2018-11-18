@@ -79,42 +79,45 @@ library("dplyr");
 library("lubridate");
 library("rpart");
 
-Q1 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q1-capitalbikeshare-tripdata.csv");
-Q2 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q2-capitalbikeshare-tripdata.csv");
-Q3 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q3-capitalbikeshare-tripdata.csv");
-Q4 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q4-capitalbikeshare-tripdata.csv");
+#Q1 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q1-capitalbikeshare-tripdata.csv");
+#Q2 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q2-capitalbikeshare-tripdata.csv");
+#Q3 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q3-capitalbikeshare-tripdata.csv");
+#Q4 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q4-capitalbikeshare-tripdata.csv");
 
-trip2017 <- read.csv(file.choose(), sep=',', header=T);
+trip2017 <- read.csv(file.choose(), sep=',');
+
+sqldf("select distinct season from trip2017 group by season")
+
 
 #Juntar as 4 partes em um único lugar
-QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
+#QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
 
 #Adicionar coluna com dia do mês, mês, ano, dia da semana (1 a 7), dia da semana (nome)
-QTOTAL <- QTOTAL %>% mutate(dia = mday(Start.date), mes = month(Start.date), ano = year(Start.date), weekday = wday(Start.date), weekday_name = wday(Start.date, label=TRUE, abbr = FALSE))
+#QTOTAL <- QTOTAL %>% mutate(dia = mday(Start.date), mes = month(Start.date), ano = year(Start.date), weekday = wday(Start.date), weekday_name = wday(Start.date, label=TRUE, abbr = FALSE))
 
 #Adicionar estações do ano [[[AINDA NÃO ESTÁ FUNCIONANDO]]]
 #Filtra Estações
 #________________________
 # Primavera: 21 mar - 20 jun
-Primavera <- QTOTAL %>% filter(Start.date>=as.Date("2017-03-21") & Start.date<=as.Date("2017-06-20"))
-Primavera <- Primavera %>% mutate(season = "spring")
+#Primavera <- QTOTAL %>% filter(Start.date>=as.Date("2017-03-21") & Start.date<=as.Date("2017-06-20"))
+#Primavera <- Primavera %>% mutate(season = "spring")
 #________________________
 # Verão: 21 jun - 20 set
-Verão <- QTOTAL %>% filter(Start.date>=as.Date("2017-06-21") & Start.date<=as.Date("2017-09-20"))
-Verão <- Verão %>% mutate(season = "summer")
+#Verão <- QTOTAL %>% filter(Start.date>=as.Date("2017-06-21") & Start.date<=as.Date("2017-09-20"))
+#Verão <- Verão %>% mutate(season = "summer")
 #________________________
 # Outono: 21 set - 20 dez
-Outono <- QTOTAL %>% filter(Start.date>=as.Date("2017-09-21") & Start.date<=as.Date("2017-12-20"))
-Outono <- Outono %>% mutate(season = "fall")
+#Outono <- QTOTAL %>% filter(Start.date>=as.Date("2017-09-21") & Start.date<=as.Date("2017-12-20"))
+#Outono <- Outono %>% mutate(season = "fall")
 #________________________
 # Inverno: 21 dez - 20 mar
-Inverno <- filter(QTOTAL, (Start.date>=as.Date("2017-12-21") & Start.date<=as.Date("2017-12-31")) & (Start.date>=as.Date("2017-01-01") & Start.date<=as.Date("2017-03-20")))
-Inverno <- Inverno %>% mutate(season = "winter")
+#Inverno <- filter(QTOTAL, (Start.date>=as.Date("2017-12-21") & Start.date<=as.Date("2017-12-31")) & (Start.date>=as.Date("2017-01-01") & Start.date<=as.Date("2017-03-20")))
+#Inverno <- Inverno %>% mutate(season = "winter")
 #Junta arquivos
-QTOTAL <- rbind(rbind(Primavera, Verão), rbind(Outono, Inverno));
+#QTOTAL <- rbind(rbind(Primavera, Verão), rbind(Outono, Inverno));
 
 #exportar tabela para arquivo csv
-write.csv(QTOTAL, "tabela.csv")
+#write.csv(QTOTAL, "tabela.csv")
 
 ###############################
 ######### RESULTADOS ##########
@@ -153,14 +156,14 @@ ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=count
 #=======================================#
 #TOTAL DE ALUGUÉIS POR MÊS
 #!![Inverno é a estação com menos alugueis. Principalmente em Dezembro e Janeiro]!!
-TotalAlugueisPorMes <- QTOTAL %>% group_by(mes) %>% summarize(count = n());
+TotalAlugueisPorMes <- trip2017 %>% group_by(mouth) %>% summarize(count = n());
 ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=mes,y=count,group=1), stat="identity")
 
 
-#Scripts do Oton
 count_total <- sqldf("select type, count(start_station) as total from trip2017 group by type limit 10")
-ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
-#No total, o aluguel feito por membros corresponde a um pouco mais de 1/3 dos aluguéis casuais: 799188/249387
+ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + xlab("Tipo de aluguel") + ylab("Quantidade") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+#No total, o aluguel feito por membros corresponde a quase 3 vezes os aluguéis casuais: 2775979/981798 = 2.82
+
 
 # sqldf("select start_station_name from trip2017 where start_station='31247' limit 1") #pra saber o nome da estação 31247
 rota_mais_usada <- sqldf("select start_station, end_station, count(*) qtd from trip2017 group by start_station, end_station order by qtd desc limit 10") # rota mais usada
@@ -173,11 +176,22 @@ ggplot(data=trip2017) + geom_point(mapping = aes(x=m_duration, y= m_distance, co
 
 
 #relação entre distancia e duração
-ggplot(trip2017, aes(x = m_duration, y = m_distance, colour = type)) + geom_point() #+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+#identificamos dois perfis de corridas, voltados para o propósito da corrida.
+#Uma corrida para o trabalho, por exemplo, não é desejável perder tempo.
+#Então vamos pela menor rota, pecorrendo grande distância, no menor tempo possível.
+#E existe ainda outro perfil oposto, aqueles que fazem um trajeto menor, mas que levam mais tempo para completá-lo. Podendo, inclusive, devolver a bike no mesmo ponto de onde alugaram.
 
-select type, start_station, count(*) qtd from trip2017_same group by type, start_station order by qtd desc limit 100 # estações mais alugam para cadastrados ou membros
+#ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + facet_grid(workday~.)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
-select bike, sum(m_distance) dist from trip2017_same group by bike order by dist desc limit 10 # bikes que percorreram maior distancia
+#relação duration x m_duration
+ggplot(trip2017, aes(x = duration, y = m_duration)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+
+
+sqldf("select type, start_station, count(*) qtd from trip2017 group by type, start_station order by qtd desc limit 100") # estações mais alugam para cadastrados ou membros
+
+bikes_pec <- sqldf("select bike, sum(m_distance) dist from trip2017 group by bike order by dist desc") # bikes que percorreram maior distancia
 # baseado nessa informacao eh possivel criar um sistema de reparos - importante (pode ficar melhor se usar o tempo)
 
 select start_station, end_station, season, count(*) qtd  from trip2017 group by start_station, end_station, season order by qtd desc limit 10 # rota mais usada por estacao do ano 
