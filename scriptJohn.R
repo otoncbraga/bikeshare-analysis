@@ -48,6 +48,10 @@
 #duas funções acima são equivalentes às seguintes:
 #weekdays(as.Date(datas), abbreviate = TRUE) ou weekdays(as.Date(datas))
 
+
+#remover labels do grafico
+#theme(axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
 ###############################
 ######## PARA APRENDER ########
 ###############################
@@ -66,17 +70,21 @@ install.packages("ggplot2"); #gerar gráficos
 install.packages("sqldf"); #reconhecer comandos SQL
 install.packages("dplyr"); #Transformação/manipulação de dados
 install.packages("lubridate");
+install.packages('rpart',dependencies = T)
 
 #Carregar bibliotecas
 library("ggplot2");
 library("sqldf");
 library("dplyr");
 library("lubridate");
+library("rpart");
 
 Q1 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q1-capitalbikeshare-tripdata.csv");
 Q2 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q2-capitalbikeshare-tripdata.csv");
 Q3 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q3-capitalbikeshare-tripdata.csv");
 Q4 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q4-capitalbikeshare-tripdata.csv");
+
+trip2017 <- read.csv(file.choose(), sep=',', header=T);
 
 #Juntar as 4 partes em um único lugar
 QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
@@ -148,3 +156,40 @@ ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=count
 TotalAlugueisPorMes <- QTOTAL %>% group_by(mes) %>% summarize(count = n());
 ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=mes,y=count,group=1), stat="identity")
 
+
+#Scripts do Oton
+count_total <- sqldf("select type, count(start_station) as total from trip2017 group by type limit 10")
+ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+#No total, o aluguel feito por membros corresponde a um pouco mais de 1/3 dos aluguéis casuais: 799188/249387
+
+# sqldf("select start_station_name from trip2017 where start_station='31247' limit 1") #pra saber o nome da estação 31247
+rota_mais_usada <- sqldf("select start_station, end_station, count(*) qtd from trip2017 group by start_station, end_station order by qtd desc limit 10") # rota mais usada
+ggplot(data=rota_mais_usada) + geom_point(mapping = aes(x=start_station,y=end_station, size = qtd))
+ggplot(data=trip2017) + geom_point(mapping = aes(x=m_duration, y= m_distance, colour=type, fill=type))
+
+# se soubessemos os historico das estacoes, poderiamos descobrir quais estacoes precisam de mais bikes baseado no numero de vezes que ela fica vazia
+# com essa informacao é possível sugerir uma ciclovia caso nao haja ainda
+# fazer isso automaticamente podemos saber a infuencia que uma ciclovia tem no uso do sistema
+
+
+#relação entre distancia e duração
+ggplot(trip2017, aes(x = m_duration, y = m_distance, colour = type)) + geom_point() #+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+select type, start_station, count(*) qtd from trip2017_same group by type, start_station order by qtd desc limit 100 # estações mais alugam para cadastrados ou membros
+
+select bike, sum(m_distance) dist from trip2017_same group by bike order by dist desc limit 10 # bikes que percorreram maior distancia
+# baseado nessa informacao eh possivel criar um sistema de reparos - importante (pode ficar melhor se usar o tempo)
+
+select start_station, end_station, season, count(*) qtd  from trip2017 group by start_station, end_station, season order by qtd desc limit 10 # rota mais usada por estacao do ano 
+# o rota com mais alugueis acontece na primavera e corresponde a um passseio, pois a estacao de saida e chegada é a mesma
+# 31247 fica proximo ao monumento hisorico, onde ha um otimo espaco para passeio, assim como a maioria dessas estacoes (31258, 31248, 31249)
+
+select TERMINAL_NUMBER, NUMBER_OF_EMPTY_DOCKS from station order by NUMBER_OF_EMPTY_DOCKS desc
+# por incrivel que pareca, as estacoes com mais docks nao sao as mais utilizadas
+
+
+#TESTE ARVORE
+amostra = sample(2,1000,replace=T, prob=c(0.7,0.3))
+treino = trip2017[amostra==1,] # para treinamento
+teste = trip2017[amostra==1,] # para teste
+arvore = rpart(class ~ ., data=treino)
