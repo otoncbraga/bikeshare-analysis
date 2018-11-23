@@ -128,6 +128,10 @@ sqldf("select distinct season from trip2017 group by season")
 TotalAlugueisPorDiaSemana <- QTOTAL %>% group_by(weekday_name) %>% summarize(count_all = n());
 ggplot(data=TotalAlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y=count_all,group=1, fill=weekday_name), stat="identity")
 
+TotalAlugueisPorEstacao <- trip2017 %>% group_by(season) %>% summarize(count_all = n());
+ggplot(data=TotalAlugueisPorEstacao) + geom_bar(mapping = aes(x=season,y=count_all,group=1, fill=season), stat="identity")+ xlab("Estação do ano") + ylab("Total de aluguéis") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank())
+
+
 ggplot(data=TotalAlugueisPorDiaSemana) + geom_point(mapping = aes(x=weekday_name,y=count_all))
 
 #!![Usuários casuais utilizam mais nos sábados e domingos]!!
@@ -156,9 +160,11 @@ ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=count
 #=======================================#
 #TOTAL DE ALUGUÉIS POR MÊS
 #!![Inverno é a estação com menos alugueis. Principalmente em Dezembro e Janeiro]!!
-TotalAlugueisPorMes <- trip2017 %>% group_by(mouth) %>% summarize(count = n());
-ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=mes,y=count,group=1), stat="identity")
+TotalAlugueisPorMes <- trip2017 %>% group_by(month) %>% summarize(count = n());
+ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=month,y=count_all,group=1, class=season), stat="identity")
 
+
+TotalAlugueisPorMes <- sqldf("select type, start_station, count(*) qtd from trip2017 group by type, start_station order by qtd desc limit 100")
 
 count_total <- sqldf("select type, count(start_station) as total from trip2017 group by type limit 10")
 ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + xlab("Tipo de aluguel") + ylab("Quantidade") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
