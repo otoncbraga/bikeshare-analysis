@@ -53,15 +53,6 @@
 #theme(axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
 ###############################
-######## PARA APRENDER ########
-###############################
-#[X] Juntar arquivos em um só
-#[X] Exportar para csv
-#[X] Adicionar coluna com dia da semana
-#[ ] Adicionar coluna com estação do ano
-#[ ] Adicionar coluna com informação de dia útil
-
-###############################
 ##### PRÉ-PROCESSAMENTO #######
 ###############################
 
@@ -85,6 +76,7 @@ library("rpart");
 #Q4 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q4-capitalbikeshare-tripdata.csv");
 
 trip2017 <- read.csv(file.choose(), sep=',');
+agt_hour <- read.csv(file.choose(), sep=',');
 
 sqldf("select distinct season from trip2017 group by season")
 
@@ -194,17 +186,38 @@ ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + theme(axi
 ggplot(trip2017, aes(x = duration, y = m_duration)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
 
+#AGRUPAMENTO POR HORA
+#quantidade de alguel por hora em cada estação
+ggplot(data = agt_hour) + geom_point(mapping = aes(x = qtd, y = hour, color=temperature)) + facet_wrap(~ season, nrow=1) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+#melhor de ver assim
+ggplot(data = agt_hour) + geom_point(mapping = aes(x = hour, y = qtd, color=temperature)) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ season, nrow=2) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+
+#quantidade de alguel por hora em cada dia da semana
+ggplot(data = agt_hour) + geom_point(mapping = aes(x = qtd, y = hour, color=as.character(workday))) + facet_wrap(~ weekday, nrow=1) + labs(color = "dia útil\n") + xlab("quantidade") + ylab("hora") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+#melhor de ver assim
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ weekday, ncol=4) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ weekday, ncol=3) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ weekday, ncol=2) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+#quantidade de alguel por hora de acordo com a temperature e r_temperature
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = temperature)) + xlab("quantity") + ylab("temperature") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = r_temperature)) + xlab("quantity") + ylab("r_temperature") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
+#quantidade de aluguel por dia de cada mes
+ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=4) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
 
 sqldf("select type, start_station, count(*) qtd from trip2017 group by type, start_station order by qtd desc limit 100") # estações mais alugam para cadastrados ou membros
 
 bikes_pec <- sqldf("select bike, sum(m_distance) dist from trip2017 group by bike order by dist desc") # bikes que percorreram maior distancia
 # baseado nessa informacao eh possivel criar um sistema de reparos - importante (pode ficar melhor se usar o tempo)
 
-select start_station, end_station, season, count(*) qtd  from trip2017 group by start_station, end_station, season order by qtd desc limit 10 # rota mais usada por estacao do ano 
+#select start_station, end_station, season, count(*) qtd  from trip2017 group by start_station, end_station, season order by qtd desc limit 10 # rota mais usada por estacao do ano 
 # o rota com mais alugueis acontece na primavera e corresponde a um passseio, pois a estacao de saida e chegada é a mesma
 # 31247 fica proximo ao monumento hisorico, onde ha um otimo espaco para passeio, assim como a maioria dessas estacoes (31258, 31248, 31249)
 
-select TERMINAL_NUMBER, NUMBER_OF_EMPTY_DOCKS from station order by NUMBER_OF_EMPTY_DOCKS desc
+#select TERMINAL_NUMBER, NUMBER_OF_EMPTY_DOCKS from station order by NUMBER_OF_EMPTY_DOCKS desc
 # por incrivel que pareca, as estacoes com mais docks nao sao as mais utilizadas
 
 
