@@ -161,6 +161,8 @@ TotalAlugueisPorMes <- sqldf("select type, start_station, count(*) qtd from trip
 count_total <- sqldf("select type, count(start_station) as total from trip2017 group by type limit 10")
 ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + xlab("Tipo de aluguel") + ylab("Quantidade") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
 #No total, o aluguel feito por membros corresponde a quase 3 vezes os aluguéis casuais: 2775979/981798 = 2.82
+((981798*100)/2775979) - 100
+
 
 
 # sqldf("select start_station_name from trip2017 where start_station='31247' limit 1") #pra saber o nome da estação 31247
