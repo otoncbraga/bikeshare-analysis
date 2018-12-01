@@ -70,6 +70,10 @@ library("dplyr");
 library("lubridate");
 library("rpart");
 
+#Remover notação científica dos gráficos
+options(scipen = 999)
+
+
 #Q1 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q1-capitalbikeshare-tripdata.csv");
 #Q2 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q2-capitalbikeshare-tripdata.csv");
 #Q3 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q3-capitalbikeshare-tripdata.csv");
@@ -77,6 +81,14 @@ library("rpart");
 
 trip2017 <- read.csv(file.choose(), sep=',');
 agt_hour <- read.csv(file.choose(), sep=',');
+
+#Detalha valores da tabela
+summary(agt_hour, digits=3)
+summary(trip2017)
+
+#Duração média dos aluguéis
+summary(trip2017$duration)
+
 
 sqldf("select distinct season from trip2017 group by season")
 
@@ -136,14 +148,20 @@ AlugueisMembros <- filter(QTOTAL, Member.type=="Member")
 TotalAlugueisPorDiaSemanaMembros <- AlugueisMembros %>% group_by(weekday_name) %>% summarize(count_membro = n())
 ggplot(data=TotalAlugueisPorDiaSemanaMembros) + geom_bar(mapping = aes(x=weekday_name,y=count_membro,group=1), stat="identity")
 
+#Gráfico unificado
+count_usuarios_dia <- sqldf("select type, day, count (*) as total from trip2017 group by type, day")
+ggplot(data=count_usuarios_dia) + geom_bar(mapping = aes(x=as.factor(day),y=total,group=1, fill=type), stat="identity") + xlab("day") + ylab("total") + theme(legend.position = "none")
+
+ggplot(count_usuarios_dia, fill=type) + geom_bar(mapping = aes(x=day, fill=type), position = "dodge")
+ggplot(data=count_usuarios_dia) + geom_bar(mapping = aes(x=day,y=total,group=1, fill=type), position="dodgedentity")
+
+
+count_usuarios_mes <- sqldf("select type, month, count (*) as total from trip2017 group by type, month")
+ggplot(data=count_usuarios_mes) + geom_bar(mapping = aes(x=as.factor(month),y=total,group=1, fill=type), stat="identity") + xlab("month") + ylab("total")
+
+
 #Fazer o merge em TotalAlugueisPorDiaSemanaDetalhado, com o total dos dois tipos de usuario, de casual e de membro, pelo dia da semana
 TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(TotalAlugueisPorDiaSemanaCasuais, TotalAlugueisPorDiaSemanaMembros, by="weekday_name")),by="weekday_name")
-
-#Não está funcionando
-ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=count_all, fill=count_casual), position = "dodge")
-#Mostrar dduas linhas msotrando diferença. [[Ainda não está funcionando]]
-#ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_bar(mapping = aes(x=weekday_name, y=count_casual)) + geom_bar(mapping = aes(x=weekday_name, y=count_membro))
-#ggplot(data=TotalAlugueisPorDiaSemanaDetalhado) + geom_smooth(mapping = aes(x=weekday_name, y=count_casual)) + geom_smooth(mapping = aes(x=weekday_name, y=count_membro, color="blue"))
 
 #=======================================#
 #MÉDIA DE ALUGUÉIS POR DIA DA SEMANA
@@ -182,7 +200,7 @@ ggplot(data=trip2017) + geom_point(mapping = aes(x=m_duration, y= m_distance, co
 #E existe ainda outro perfil oposto, aqueles que fazem um trajeto menor, mas que levam mais tempo para completá-lo. Podendo, inclusive, devolver a bike no mesmo ponto de onde alugaram.
 
 #ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + facet_grid(workday~.)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
-ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()))
 
 #relação duration x m_duration
 ggplot(trip2017, aes(x = duration, y = m_duration)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
