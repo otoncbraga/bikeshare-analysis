@@ -91,7 +91,7 @@ summary(trip2017$duration)
 
 
 sqldf("select distinct season from trip2017 group by season")
-
+sqldf("select distinct season from agt_hour group by season")
 
 #Juntar as 4 partes em um único lugar
 #QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
@@ -135,8 +135,8 @@ ggplot(data=TotalAlugueisPorDiaSemana) + geom_bar(mapping = aes(x=weekday_name,y
 TotalAlugueisPorEstacao <- trip2017 %>% group_by(season) %>% summarize(count_all = n());
 ggplot(data=TotalAlugueisPorEstacao) + geom_bar(mapping = aes(x=season,y=count_all,group=1, fill=season), stat="identity")+ xlab("Estação do ano") + ylab("Total de aluguéis") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank())
 
+TotalAlugueisPorEstacaoTeste2 <- TotalAlugueisPorEstacaoTeste %>% group_by(season) %>% summarize(counti = n(), media = mean(count_qnt));
 
-ggplot(data=TotalAlugueisPorDiaSemana) + geom_point(mapping = aes(x=weekday_name,y=count_all))
 
 #!![Usuários casuais utilizam mais nos sábados e domingos]!!
 AlUgueisCasuais <- filter(QTOTAL, Member.type=="Casual")
@@ -169,6 +169,9 @@ TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(Tot
 
 #=======================================#
 #TOTAL DE ALUGUÉIS POR MÊS
+
+################################
+
 #!![Inverno é a estação com menos alugueis. Principalmente em Dezembro e Janeiro]!!
 TotalAlugueisPorMes <- trip2017 %>% group_by(month) %>% summarize(count = n());
 ggplot(data=TotalAlugueisPorMes) + geom_bar(mapping = aes(x=month,y=count_all,group=1, class=season), stat="identity")
@@ -194,6 +197,15 @@ ggplot(data=trip2017) + geom_point(mapping = aes(x=m_duration, y= m_distance, co
 
 
 #relação entre distancia e duração
+
+
+#relação season x duration
+duration <- sqldf("SELECT type, AVG(duration) as media_duration, AVG(m_duration) as media_m_duration, AVG(m_distance) as media_m_distance FROM trip2017 GROUP BY type");
+duration2 <- sqldf("SELECT type, season, AVG(duration) as media_duration, AVG(m_duration) as media_m_duration, AVG(m_distance) as media_m_distance FROM trip2017 GROUP BY type, season");
+duration3 <- sqldf("SELECT type, month, season, AVG(duration) as media_duration, AVG(m_duration) as media_m_duration, AVG(m_distance) as media_m_distance FROM trip2017 GROUP BY type, month, season");
+duration4 <- sqldf("SELECT season, AVG(duration) as media_duration, AVG(m_duration) as media_m_duration, AVG(m_distance) as media_m_distance FROM trip2017 GROUP BY season");
+summary(trip2017)
+
 #identificamos dois perfis de corridas, voltados para o propósito da corrida.
 #Uma corrida para o trabalho, por exemplo, não é desejável perder tempo.
 #Então vamos pela menor rota, pecorrendo grande distância, no menor tempo possível.
@@ -227,6 +239,11 @@ ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = r_temperature))
 #quantidade de aluguel por dia de cada mes
 ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=4) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
+#relação com temperatura
+#não funciona
+qntDiaTipo <- sqldf("SELECT day as days, type, season as seasons, COUNT(*) as total FROM trip2017 GROUP BY day, type, season");
+qntDiaTipoTemp <- sqldf("SELECT days, type, seasons, AVG(temperature) as media, total FROM qntDiaTipo AS trip JOIN agt_hour as agt ON trip.days = agt.day GROUP BY days, type");
+ggplot(qntDiaTipoTemp, aes(days, media)) + geom_point(aes(colour = factor(type), size = total))
 
 sqldf("select type, start_station, count(*) qtd from trip2017 group by type, start_station order by qtd desc limit 100") # estações mais alugam para cadastrados ou membros
 
