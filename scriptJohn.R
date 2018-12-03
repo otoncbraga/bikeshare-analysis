@@ -73,12 +73,6 @@ library("rpart");
 #Remover notação científica dos gráficos
 options(scipen = 999)
 
-
-#Q1 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q1-capitalbikeshare-tripdata.csv");
-#Q2 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q2-capitalbikeshare-tripdata.csv");
-#Q3 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q3-capitalbikeshare-tripdata.csv");
-#Q4 <- read.csv("C:/Users/johnattan.douglas/Desktop/capitalbikeshare/2017Q4-capitalbikeshare-tripdata.csv");
-
 trip2017 <- read.csv(file.choose(), sep=',');
 agt_hour <- read.csv(file.choose(), sep=',');
 
@@ -92,33 +86,6 @@ summary(trip2017$duration)
 
 sqldf("select distinct season from trip2017 group by season")
 sqldf("select distinct season from agt_hour group by season")
-
-#Juntar as 4 partes em um único lugar
-#QTOTAL <- rbind(rbind(Q1, Q2), rbind(Q3, Q4));
-
-#Adicionar coluna com dia do mês, mês, ano, dia da semana (1 a 7), dia da semana (nome)
-#QTOTAL <- QTOTAL %>% mutate(dia = mday(Start.date), mes = month(Start.date), ano = year(Start.date), weekday = wday(Start.date), weekday_name = wday(Start.date, label=TRUE, abbr = FALSE))
-
-#Adicionar estações do ano [[[AINDA NÃO ESTÁ FUNCIONANDO]]]
-#Filtra Estações
-#________________________
-# Primavera: 21 mar - 20 jun
-#Primavera <- QTOTAL %>% filter(Start.date>=as.Date("2017-03-21") & Start.date<=as.Date("2017-06-20"))
-#Primavera <- Primavera %>% mutate(season = "spring")
-#________________________
-# Verão: 21 jun - 20 set
-#Verão <- QTOTAL %>% filter(Start.date>=as.Date("2017-06-21") & Start.date<=as.Date("2017-09-20"))
-#Verão <- Verão %>% mutate(season = "summer")
-#________________________
-# Outono: 21 set - 20 dez
-#Outono <- QTOTAL %>% filter(Start.date>=as.Date("2017-09-21") & Start.date<=as.Date("2017-12-20"))
-#Outono <- Outono %>% mutate(season = "fall")
-#________________________
-# Inverno: 21 dez - 20 mar
-#Inverno <- filter(QTOTAL, (Start.date>=as.Date("2017-12-21") & Start.date<=as.Date("2017-12-31")) & (Start.date>=as.Date("2017-01-01") & Start.date<=as.Date("2017-03-20")))
-#Inverno <- Inverno %>% mutate(season = "winter")
-#Junta arquivos
-#QTOTAL <- rbind(rbind(Primavera, Verão), rbind(Outono, Inverno));
 
 #exportar tabela para arquivo csv
 #write.csv(QTOTAL, "tabela.csv")
@@ -153,12 +120,10 @@ count_usuarios_dia <- sqldf("select type, day, count (*) as total from trip2017 
 ggplot(data=count_usuarios_dia) + geom_bar(mapping = aes(x=as.factor(day),y=total,group=1, fill=type), stat="identity") + xlab("day") + ylab("total") + theme(legend.position = "none")
 
 ggplot(count_usuarios_dia, fill=type) + geom_bar(mapping = aes(x=day, fill=type), position = "dodge")
-ggplot(data=count_usuarios_dia) + geom_bar(mapping = aes(x=day,y=total,group=1, fill=type), position="dodgedentity")
-
+ggplot(data=count_usuarios_dia) + geom_bar(mapping = aes(x=day,y=total,group=1, fill=type), position="dodge")
 
 count_usuarios_mes <- sqldf("select type, month, count (*) as total from trip2017 group by type, month")
 ggplot(data=count_usuarios_mes) + geom_bar(mapping = aes(x=as.factor(month),y=total,group=1, fill=type), stat="identity") + xlab("month") + ylab("total")
-
 
 #Fazer o merge em TotalAlugueisPorDiaSemanaDetalhado, com o total dos dois tipos de usuario, de casual e de membro, pelo dia da semana
 TotalAlugueisPorDiaSemanaDetalhado = merge(TotalAlugueisPorDiaSemana, (merge(TotalAlugueisPorDiaSemanaCasuais, TotalAlugueisPorDiaSemanaMembros, by="weekday_name")),by="weekday_name")
@@ -183,8 +148,6 @@ count_total <- sqldf("select type, count(start_station) as total from trip2017 g
 ggplot(data=count_total) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + xlab("Tipo de aluguel") + ylab("Quantidade") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
 #No total, o aluguel feito por membros corresponde a quase 3 vezes os aluguéis casuais: 2775979/981798 = 2.82
 ((981798*100)/2775979) - 100
-
-
 
 # sqldf("select start_station_name from trip2017 where start_station='31247' limit 1") #pra saber o nome da estação 31247
 rota_mais_usada <- sqldf("select start_station, end_station, count(*) qtd from trip2017 group by start_station, end_station order by qtd desc limit 10") # rota mais usada
@@ -212,14 +175,25 @@ summary(trip2017)
 #E existe ainda outro perfil oposto, aqueles que fazem um trajeto menor, mas que levam mais tempo para completá-lo. Podendo, inclusive, devolver a bike no mesmo ponto de onde alugaram.
 
 #ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + facet_grid(workday~.)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
-ggplot(trip2017, aes(x = m_duration, y = m_distance) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank()))
+ggplot(trip2017, aes(x = m_duration, y = m_distance)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance, color=type)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance, color=as.factor(workday))) + geom_point() + labs(color = "workday") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance, color=type)) + geom_point() + facet_wrap(~ day, ncol=3) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(trip2017, aes(x = m_duration, y = m_distance, color=type)) + geom_point() + facet_wrap(~ holiday, ncol=3) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
+
 
 #relação duration x m_duration
 ggplot(trip2017, aes(x = duration, y = m_duration)) + geom_point() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
 
+#Análise feriados
+totalferiados <- sqldf("select type, count (*) as total, holiday from trip2017 where holiday != 'NULL' group by type, holiday ");
+ggplot(data=totalferiados) + geom_bar(mapping = aes(x=type,y=total,group=1, fill=type), stat="identity") + coord_flip() + facet_wrap(~ holiday, ncol=3) + theme(legend.position = "top", axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data=count_usuarios_mes) + geom_bar(mapping = aes(x=as.factor(month),y=total,group=1, fill=type), stat="identity") + xlab("month") + ylab("total")
+
+
 #AGRUPAMENTO POR HORA
-#quantidade de alguel por hora em cada estação
+#quantidade de alguel por hora em cada estação do ano
 ggplot(data = agt_hour) + geom_point(mapping = aes(x = qtd, y = hour, color=temperature)) + facet_wrap(~ season, nrow=1) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 #melhor de ver assim
 ggplot(data = agt_hour) + geom_point(mapping = aes(x = hour, y = qtd, color=temperature)) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ season, nrow=2) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
@@ -239,11 +213,24 @@ ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = r_temperature))
 #quantidade de aluguel por dia de cada mes
 ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=4) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
-#relação com temperatura
-#não funciona
-qntDiaTipo <- sqldf("SELECT day as days, type, season as seasons, COUNT(*) as total FROM trip2017 GROUP BY day, type, season");
-qntDiaTipoTemp <- sqldf("SELECT days, type, seasons, AVG(temperature) as media, total FROM qntDiaTipo AS trip JOIN agt_hour as agt ON trip.days = agt.day GROUP BY days, type");
-ggplot(qntDiaTipoTemp, aes(days, media)) + geom_point(aes(colour = factor(type), size = total))
+###############
+
+#TRABALHANDO AQUI
+#relação da quantidade com temperatura
+qntTemp <- sqldf("SELECT day, season, temperature, r_temperature, count (*) as total FROM agt_hour group by season, temperature, r_temperature");
+ggplot(qntTemp, aes(temperature, total, color=season)) + geom_point(position = "jitter") + geom_smooth(color="darkslategray") # + scale_x_continuous(limits=c(-5, 35)) + scale_y_continuous(limits=c(0, 150)) + theme(legend.position = "top")
+ggplot(qntTemp, aes(r_temperature, total, color=season)) + geom_point(position = "jitter") + geom_smooth(color="darkslategray")
+
+#breaks
+#https://pt.stackoverflow.com/questions/38426/como-arrumar-os-limites-do-eixo-x-no-ggplot
+#+ scale_x_continuous(breaks = c(-20, -10, 0, 10, 20, 30, 40, 50)) 
+
+
+################
+
+ggplot(qntTemp, aes(temperature, total, shape=season, color=season)) + geom_point() + geom_smooth(color="black") + facet_wrap(~ season, ncol=2)#+ scale_y_continuous(limits=c(0, 150))
+
+
 
 sqldf("select type, start_station, count(*) qtd from trip2017 group by type, start_station order by qtd desc limit 100") # estações mais alugam para cadastrados ou membros
 
@@ -252,7 +239,7 @@ bikes_pec <- sqldf("select bike, sum(m_distance) dist from trip2017 group by bik
 
 #select start_station, end_station, season, count(*) qtd  from trip2017 group by start_station, end_station, season order by qtd desc limit 10 # rota mais usada por estacao do ano 
 # o rota com mais alugueis acontece na primavera e corresponde a um passseio, pois a estacao de saida e chegada é a mesma
-# 31247 fica proximo ao monumento hisorico, onde ha um otimo espaco para passeio, assim como a maioria dessas estacoes (31258, 31248, 31249)
+# 31247 fica proximo ao monumento hisorico, onde ha um otimo espaco para passeio, assim como a maioridessas estaa coes (31258, 31248, 31249)
 
 #select TERMINAL_NUMBER, NUMBER_OF_EMPTY_DOCKS from station order by NUMBER_OF_EMPTY_DOCKS desc
 # por incrivel que pareca, as estacoes com mais docks nao sao as mais utilizadas
