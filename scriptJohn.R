@@ -73,8 +73,8 @@ library("rpart");
 #Remover notação científica dos gráficos
 options(scipen = 999)
 
-trip2017 <- read.csv(file.choose(), sep=',');
-agt_hour <- read.csv(file.choose(), sep=',');
+trip2017 <- read.csv("C:/Users/Johnattan/Desktop/trip2017.csv", sep=',');
+agt_hour <- read.csv("C:/Users/Johnattan/Desktop/agt_hour.csv", sep=',');
 
 #Detalha valores da tabela
 summary(agt_hour, digits=3)
@@ -213,22 +213,15 @@ ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = r_temperature))
 #quantidade de aluguel por dia de cada mes
 ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=4) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
-###############
 
-#TRABALHANDO AQUI
 #relação da quantidade com temperatura
 qntTemp <- sqldf("SELECT day, season, temperature, r_temperature, count (*) as total FROM agt_hour group by season, temperature, r_temperature");
-ggplot(qntTemp, aes(temperature, total, color=season)) + geom_point(position = "jitter") + geom_smooth(color="darkslategray") # + scale_x_continuous(limits=c(-5, 35)) + scale_y_continuous(limits=c(0, 150)) + theme(legend.position = "top")
-ggplot(qntTemp, aes(r_temperature, total, color=season)) + geom_point(position = "jitter") + geom_smooth(color="darkslategray")
+ggplot(qntTemp) + geom_point(mapping = aes(temperature, total, color=season, shape=season), position = "jitter") + geom_smooth(mapping = aes(temperature, total),color="darkslategray")  # + scale_x_continuous(limits=c(-5, 35)) + scale_y_continuous(limits=c(0, 150)) + theme(legend.position = "top")
+ggplot(qntTemp) + geom_point(mapping = aes(r_temperature, total, color=season, shape=season), position = "jitter") + geom_smooth(mapping = aes(r_temperature, total),color="darkslategray") # + scale_x_continuous(limits=c(-5, 35)) + scale_y_continuous(limits=c(0, 150)) + theme(legend.position = "top")
+#Melhor de ver
+ggplot(qntTemp) + geom_point(mapping = aes(r_temperature, total, color=season, shape=season), position = "jitter") + geom_smooth(mapping = aes(r_temperature, total),color="darkslategray", alpha =0.5) + scale_x_continuous(limits=c(-15, 45), breaks = c(-20, -10, 0, 10, 20, 30, 40)) + scale_y_continuous(limits=c(0,160)) + theme(legend.position = "none")
+ggplot(qntTemp) + geom_point(mapping = aes(temperature, total, color=season, shape=season), position = "jitter") + geom_smooth(mapping = aes(temperature, total),color="darkslategray", alpha =0.5) + scale_x_continuous(limits=c(-15, 45), breaks = c(-20, -10, 0, 10, 20, 30, 40)) + scale_y_continuous(limits=c(0,160)) + theme(legend.position = "top")
 
-#breaks
-#https://pt.stackoverflow.com/questions/38426/como-arrumar-os-limites-do-eixo-x-no-ggplot
-#+ scale_x_continuous(breaks = c(-20, -10, 0, 10, 20, 30, 40, 50)) 
-
-
-################
-
-ggplot(qntTemp, aes(temperature, total, shape=season, color=season)) + geom_point() + geom_smooth(color="black") + facet_wrap(~ season, ncol=2)#+ scale_y_continuous(limits=c(0, 150))
 
 
 
