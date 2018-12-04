@@ -73,6 +73,9 @@ library("rpart");
 #Remover notação científica dos gráficos
 options(scipen = 999)
 
+trip2017 <- read.csv("C:/Users/johnattan.douglas/Desktop/data-analysis/trip2017.csv", sep=',');
+agt_hour <- read.csv("C:/Users/johnattan.douglas/Desktop/data-analysis/agt_hour.csv", sep=',');
+
 trip2017 <- read.csv("C:/Users/Johnattan/Desktop/trip2017.csv", sep=',');
 agt_hour <- read.csv("C:/Users/Johnattan/Desktop/agt_hour.csv", sep=',');
 
@@ -197,6 +200,8 @@ ggplot(data=count_usuarios_mes) + geom_bar(mapping = aes(x=as.factor(month),y=to
 ggplot(data = agt_hour) + geom_point(mapping = aes(x = qtd, y = hour, color=temperature)) + facet_wrap(~ season, nrow=1) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 #melhor de ver assim
 ggplot(data = agt_hour) + geom_point(mapping = aes(x = hour, y = qtd, color=temperature)) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ season, nrow=2) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data = agt_hour, mapping = aes(x = hour, y = qtd)) + geom_smooth(mapping = aes(x = hour, y = qtd)) + facet_wrap(~ season, nrow=2) + xlab("hour") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank()) + scale_x_continuous(breaks = c(0, 6, 12, 18, 23))
+
 
 
 #quantidade de alguel por hora em cada dia da semana
@@ -211,8 +216,11 @@ ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = temperature)) +
 ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = qtd, y = r_temperature)) + xlab("quantity") + ylab("r_temperature") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
 #quantidade de aluguel por dia de cada mes
-ggplot(data = agt_hour) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=4) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())
+ggplot(data = agt_hour) + geom_point(mapping = aes(x = day, y = qtd, color=season)) + geom_smooth(mapping = aes(x = day, y = qtd)) + facet_wrap(~ month, ncol=3) + xlab("day") + ylab("flow") + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.position = "top") + scale_x_continuous(limits=c(1, 31), breaks = c(1, 10, 20, 30))
 
+
+
+#####
 
 #relação da quantidade com temperatura
 qntTemp <- sqldf("SELECT day, season, temperature, r_temperature, count (*) as total FROM agt_hour group by season, temperature, r_temperature");
